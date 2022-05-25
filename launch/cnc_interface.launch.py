@@ -14,26 +14,26 @@ def generate_launch_description():
     )
 
     acc = DeclareLaunchArgument(
-        'acc', default_value=TextSubstitution(text='1000')
+        'acc', default_value=TextSubstitution(text='50')
     )
     x_max = DeclareLaunchArgument(
-        'x_max', default_value=TextSubstitution(text='450')
+        'x_max', default_value=TextSubstitution(text='400')
     )
 
     y_max = DeclareLaunchArgument(
-        'y_max', default_value=TextSubstitution(text='550')
+        'y_max', default_value=TextSubstitution(text='0')
     )
 
     z_max = DeclareLaunchArgument(
-        'z_max', default_value=TextSubstitution(text='100')
+        'z_max', default_value=TextSubstitution(text='1100')
     )
 
     default_speed = DeclareLaunchArgument(
-        'default_speed', default_value=TextSubstitution(text='1000')
+        'default_speed', default_value=TextSubstitution(text='2000')
     )
 
     x_max_speed = DeclareLaunchArgument(
-        'x_max_speed', default_value=TextSubstitution(text='1000')
+        'x_max_speed', default_value=TextSubstitution(text='2000')
     )
 
     y_max_speed = DeclareLaunchArgument(
@@ -41,19 +41,19 @@ def generate_launch_description():
     )
 
     z_max_speed = DeclareLaunchArgument(
-        'z_max_speed', default_value=TextSubstitution(text='1000')
+        'z_max_speed', default_value=TextSubstitution(text='2000')
     )
 
     x_steps_mm = DeclareLaunchArgument(
-        'x_steps_mm', default_value=TextSubstitution(text='2134')
+        'x_steps_mm', default_value=TextSubstitution(text='108')
     )
 
     y_steps_mm = DeclareLaunchArgument(
-        'y_steps_mm', default_value=TextSubstitution(text='2134')
+        'y_steps_mm', default_value=TextSubstitution(text='1')
     )
 
     z_steps_mm = DeclareLaunchArgument(
-        'z_steps_mm', default_value=TextSubstitution(text='2134')
+        'z_steps_mm', default_value=TextSubstitution(text='415')
     )
 
 
