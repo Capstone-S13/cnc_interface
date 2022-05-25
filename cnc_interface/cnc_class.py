@@ -56,16 +56,18 @@ class cnc:
         self.x_steps_mm   = stepsx
         self.y_steps_mm   = stepsy
         self.z_steps_mm   = stepsz
-        self.limits  = [self.x_max, self.y_max, self.z_max]
+        # set 1.0 for y for the sake of the checking of limits
+        self.limits  = [float(self.x_max), 1.0, float(self.z_max)]
         #initiates the serial port
         self.s = serial.Serial(self.port, self.baudrate)
         # set movement to Absolut coordinates
+        self.logger = logger
         self.ensureMovementMode(True)
         # start homing procedure
         self.home()
         # set the current position as the origin (GRBL sometimes starts with z not 0)
         self.setOrigin()
-        self.logger = logger
+        
 
     def shutdown(self):
         # close the serial connection
@@ -117,16 +119,23 @@ class cnc:
 
     def moveTo(self, x=None, y=None, z=None, speed=None, blockUntilComplete=True):
         """ move to an absolute position, and return when movement completes """
+        self.logger.info(f"Moving to x: {x}, y{y}, z{z}")
         if not self.idle: return
+        self.logger.info(f"not idle")
         if x is None and y is None and z is None: return
+        self.logger.info(f"cmd filled")
         if speed is None: speed = self.defaultSpeed
+        self.logger.info(f"has default speed")
+
 
         self.ensureMovementMode(absoluteMode = True)
+        self.logger.info(f"ensured movement")
 
         gcode = 'G0'
         letters = 'XYZ'
         pos = (x, y, z)
         newpos = list(self.pos)
+        self.logger.info(f"ensured movement")
 
         #create gcode string and update position list for each argument that isn't None
         for i in range(3):
@@ -134,12 +143,14 @@ class cnc:
                 #check against self.limits
                 if pos[i] < 0 or pos[i] >= self.limits[i]:
                     # if position is outside the movement range, ignore
+                    self.logger.info(f"pos: {i} is beyond limit")
                     return
                 gcode += ' ' + letters[i] + str(pos[i])
                 newpos[i] = pos[i]
 
         gcode += ' F' + str(speed)
         gcode += '\n'
+        self.logger.info(f"gcode: {gcode}")
         try:
             self.s.write(str.encode(gcode))
             self.s.readline()
@@ -197,6 +208,7 @@ class cnc:
 
     def ensureMovementMode(self, absoluteMode = True):
         """ GRBL has two movement modes; if necessary this function tells GRBL to switch modes """
+        self.logger.info(f"ensure movement: {absoluteMode}")
         if self.abs_move == absoluteMode: return
 
         self.abs_move = absoluteMode
@@ -205,6 +217,7 @@ class cnc:
         else:
             self.s.write(str.encode('G91\n'))        # relative movement mode
         self.s.readline()
+        self.logger.info(f"end ensure movement")
 
 
     def blockUntilIdle(self):
@@ -223,22 +236,24 @@ class cnc:
     def getStatus(self):
 
         self.s.write(str.encode('?'))
-        self.logger.info("wrote")
 
 
         while True:
             try:
-                self.logger.info("trying")
+                # self.logger.info("trying")
                 status = self.s.readline().decode("utf-8","strict")
                 if status is not None:
                     try:
-                        self.logger.info("trying to match")
-                        self.logger.info(f"status: {status}")
+                        # self.logger.info("trying to match")
+                        # self.logger.info(f"status: {status}")
                         matches = self.__pos_pattern__.findall(status)
-                        self.logger.info(matches)
-                        if len(matches[1]) == 3:
-                            self.logger.info("len eq 3")
-                            self.pos = list(matches[1])
+                        # self.logger.info(f"matches len: {len(matches[0])}")
+                        # self.logger.info(matches)
+                        # for i in matches[0]:
+                            # self.logger.info(i)
+                        if len(matches[0]) == 3:
+                            # self.logger.info("len eq 3")
+                            self.pos = list(matches[0])
                         return status
                     except IndexError:
                         self.logger.info("No matches found in serial")

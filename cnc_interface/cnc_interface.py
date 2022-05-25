@@ -3,6 +3,8 @@ from rclpy.node import Node
 from std_msgs.msg import String
 from geometry_msgs.msg import Twist
 
+from rclpy.parameter import Parameter
+
 from cnc_interface.cnc_class import cnc
 
 
@@ -58,28 +60,41 @@ class CNCInterfaceNode(Node):
 
     def cnc_init(self):
         # TODO: handle getting ros params
-        port          = self.get_parameter('port').get_parameter_value().string_value
-        baud          = self.get_parameter('baud_rate').get_parameter_value().integer_value
-        acc           = self.get_parameter('acceleration').get_parameter_value()
-        max_x           = self.get_parameter('x_max').get_parameter_value()
-        max_y           = self.get_parameter('y_max').get_parameter_value()
-        max_z           = self.get_parameter('x_max').get_parameter_value()
-        default_speed = self.get_parameter('default_speed').get_parameter_value()
-        speed_x        = self.get_parameter('x_max_speed').get_parameter_value()
-        speed_y        = self.get_parameter('y_max_speed').get_parameter_value()
-        speed_z        = self.get_parameter('z_max_speed').get_parameter_value()
-        steps_x       = self.get_parameter('x_steps_mm').get_parameter_value()
-        steps_y       = self.get_parameter('y_steps_mm').get_parameter_value()
-        steps_z       = self.get_parameter('z_steps_mm').get_parameter_value()
+        # port          = self.get_parameter('port').get_parameter_value().string_value
+        # baud          = self.get_parameter('baud_rate').get_parameter_value().integer_value
+        # acc           = self.get_parameter('acceleration').get_parameter_value()
+        # max_x           = self.get_parameter('x_max').get_parameter_value()
+        # max_y           = self.get_parameter('y_max').get_parameter_value()
+        # max_z           = self.get_parameter('x_max').get_parameter_value()
+        # default_speed = self.get_parameter('default_speed').get_parameter_value()
+        # speed_x        = self.get_parameter('x_max_speed').get_parameter_value()
+        # speed_y        = self.get_parameter('y_max_speed').get_parameter_value()
+        # speed_z        = self.get_parameter('z_max_speed').get_parameter_value()
+        # steps_x       = self.get_parameter('x_steps_mm').get_parameter_value()
+        # steps_y       = self.get_parameter('y_steps_mm').get_parameter_value()
+        # steps_z       = self.get_parameter('z_steps_mm').get_parameter_value()
+        port          = '/dev/ttyUSB0'
+        baud         = 115200
+        acc           = 50
+        max_x           = 400
+        max_y           = 0
+        max_z           = 1100
+        default_speed = 2000
+        speed_x        = 2000
+        speed_y        = 0
+        speed_z        = 2000
+        steps_x       = 108
+        steps_y       = 0
+        steps_z       = 415
 
         self.cnc_obj.startup(port,baud,acc,max_x,max_y,max_z,default_speed,speed_x,speed_y,
                 speed_z,steps_x,steps_y,steps_z,self.get_logger())
 
     def cmd_callback(self, msg):
         self.get_logger().info(self.get_name() + ": " + str(msg))
-        if (msg.linear.x < self.cnc_obj.origin[0]  or msg.linear.x > self.cnc_obj.limits[0] or msg.linear.z < self.cnc_obj.origin[2] or msg.linear.z > self.cnc_obj.limits[2]):
-            self.get_logger().info(f"INVALID VALUES: x: {msg.linear.x}, y:{msg.linear.y}, z:{msg.linear.z}")
-            return
+        # if (msg.linear.x < float(self.cnc_obj.origin[0]) or msg.linear.x > float(self.cnc_obj.limits[0]) or msg.linear.z < self.cnc_obj.origin[2] or msg.linear.z > self.cnc_obj.limits[2]):
+        #     self.get_logger().info(f"INVALID VALUES: x: {msg.linear.x}, y:{msg.linear.y}, z:{msg.linear.z}")
+        #     return
 
         self.get_logger().info(f"x: {msg.linear.x}, y:{msg.linear.y}, z:{msg.linear.z}")
         print(msg.linear.x, msg.linear.y, msg.linear.z)
@@ -95,14 +110,15 @@ class CNCInterfaceNode(Node):
 
     def loop(self):
         print("p")
-        self.get_logger().info("loop")
+        # self.get_logger().info("loop")
         status     = self.cnc_obj.getStatus()
         cnc_pose   = self.cnc_obj.getTwist()
-        self.get_logger().info("after getters")
-        ros_status = String(status)
+        # self.get_logger().info("after getters")
+        ros_status = String()
+        ros_status.data = status
         self.pos_pub.publish(cnc_pose)
         self.status_pub.publish(ros_status)
-        self.get_logger().info("end loop")
+        # self.get_logger().info("end loop")
 
         # Decide if we should call get_parameter() here so we can update
         # the parameters on the go
