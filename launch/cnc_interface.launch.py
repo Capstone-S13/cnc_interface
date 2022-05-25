@@ -10,7 +10,7 @@ def generate_launch_description():
     )
 
     port = DeclareLaunchArgument(
-        'port', default_value='/dev/ttyACMO'
+        'port', default_value='/dev/ttyUSB0'
     )
 
     acc = DeclareLaunchArgument(
@@ -91,7 +91,7 @@ def generate_launch_description():
             #     'y_steps_mm': LaunchConfiguration('y_steps_mm'),
             #     'z_steps_mm': LaunchConfiguration('z_steps_mm')
             # },
-            {'port': '/dev/ttyACMO'},
+            {'port': '/dev/ttyUSB0'},
 			{'x_max': 1000}]
         ),
     ])

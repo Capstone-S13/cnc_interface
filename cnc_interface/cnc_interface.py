@@ -28,19 +28,19 @@ class CNCInterfaceNode(Node):
         self.timer = self.create_timer(timer_period, self.loop)
 
     def declare_param(self):
-        port          = '/dev/ttyACMO'
+        port          = '/dev/ttyUSB0'
         baud_rate         = 115200
-        acc           = 1000
+        acc           = 50
         x_max           = 400
         y_max           = 0
         z_max           = 1100
-        default_speed = 1000
-        speed_x        = 1000
+        default_speed = 2000
+        speed_x        = 2000
         speed_y        = 0
-        speed_z        = 1000
-        steps_x       = 2134
+        speed_z        = 2000
+        steps_x       = 108
         steps_y       = 0
-        steps_z       = 2134
+        steps_z       = 415
         self.declare_parameter('port', port)
         self.declare_parameter('baud_rate', baud_rate)
         self.declare_parameter('acceleration', acc)
@@ -73,7 +73,7 @@ class CNCInterfaceNode(Node):
         steps_z       = self.get_parameter('z_steps_mm').get_parameter_value()
 
         self.cnc_obj.startup(port,baud,acc,max_x,max_y,max_z,default_speed,speed_x,speed_y,
-                speed_z,steps_x,steps_y,steps_z)
+                speed_z,steps_x,steps_y,steps_z,self.get_logger())
 
     def cmd_callback(self, msg):
         self.get_logger().info(self.get_name() + ": " + str(msg))
@@ -94,12 +94,15 @@ class CNCInterfaceNode(Node):
             self.cnc_obj.enableSteppers()
 
     def loop(self):
+        print("p")
         self.get_logger().info("loop")
         status     = self.cnc_obj.getStatus()
         cnc_pose   = self.cnc_obj.getTwist()
+        self.get_logger().info("after getters")
         ros_status = String(status)
         self.pos_pub.publish(cnc_pose)
         self.status_pub.publish(ros_status)
+        self.get_logger().info("end loop")
 
         # Decide if we should call get_parameter() here so we can update
         # the parameters on the go
@@ -110,6 +113,8 @@ def main():
     rclpy.init()
     node = CNCInterfaceNode()
     rclpy.spin(node)
+    node.destroy_node()
+    rclpy.shutdown()
 
 if __name__ == '__main__':
     main()

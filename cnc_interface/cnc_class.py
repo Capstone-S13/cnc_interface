@@ -39,8 +39,9 @@ class cnc:
         self.angular = [0.0, 0.0, 0.0]     # angular coordinates
         self.origin  = [0.0, 0.0, 0.0]     # minimum coordinates
         self.limits  = [0.0, 0.0, 0.0]     # maximum coordinates
+        self.logger = None
 
-    def startup(self,port,baud, acc, maxx, maxy,maxz,spdf,spdx, spdy, spdz, stepsx, stepsy, stepsz):
+    def startup(self,port,baud, acc, maxx, maxy,maxz,spdf,spdx, spdy, spdz, stepsx, stepsy, stepsz, logger):
         """ initiate all CNC parameters readed from .launch file """
         self.baudrate       =   baud
         self.port           =   port
@@ -64,6 +65,7 @@ class cnc:
         self.home()
         # set the current position as the origin (GRBL sometimes starts with z not 0)
         self.setOrigin()
+        self.logger = logger
 
     def shutdown(self):
         # close the serial connection
@@ -93,14 +95,14 @@ class cnc:
 
     def home(self):
         # initaites the home procedure
-        self.s.write("$H\n")
+        self.s.write(str.encode('$H\n'))
         self.s.readline()
         self.pos = list(self.origin)
 
     def enableSteppers(self):
         # enable the stepper motors
         try:	
-            self.s.write("M17\n")
+            self.s.write(str.encode('M17\n'))
             self.s.readline()
         except:
             print("Serial port unavailable")
@@ -108,7 +110,7 @@ class cnc:
     def disableSteppers(self):
         # Disable the stepper motors
         try:
-            self.s.write("M18\n")
+            self.s.write(str.encode('M18\n'))
             self.s.readline()
         except:
             print("Serial port unavailable")
@@ -139,7 +141,7 @@ class cnc:
         gcode += ' F' + str(speed)
         gcode += '\n'
         try:
-            self.s.write(gcode)
+            self.s.write(str.encode(gcode))
             self.s.readline()
         except:
             print("Serial port unavailable")
@@ -167,7 +169,7 @@ class cnc:
         gcode += ' f' + str(speed)
         gcode += '\n'
 
-        self.s.write(gcode)
+        self.s.write(str.encode(gcode))
         self.s.readline()
 
         # the position update should be done after reading state
@@ -187,7 +189,7 @@ class cnc:
     def setOrigin(self, x=0, y=0, z=0):
         """set current position to be (0,0,0), or a custom (x,y,z)"""
         gcode = "G92 x{} y{} z{}\n".format(x, y, z)
-        self.s.write(gcode)
+        self.s.write(str.encode(gcode))
         self.s.readline()
 
         # update our internal location
@@ -199,9 +201,9 @@ class cnc:
 
         self.abs_move = absoluteMode
         if absoluteMode:
-            self.s.write("G90\n")        # absolute movement mode
+            self.s.write(str.encode('G90\n'))        # absolute movement mode
         else:
-            self.s.write("G91\n")        # relative movement mode
+            self.s.write(str.encode('G91\n'))        # relative movement mode
         self.s.readline()
 
 
@@ -209,7 +211,7 @@ class cnc:
         """ polls until GRBL indicates it is done with the last command """
         pollcount = 0
         while True:
-            self.s.write("?")
+            self.s.write(str.encode('?'))
             status = self.s.readline()
             if status.startswith('<Idle'): break
             # not used
@@ -220,19 +222,26 @@ class cnc:
 
     def getStatus(self):
 
-        self.s.write("?")
+        self.s.write(str.encode('?'))
+        self.logger.info("wrote")
+
 
         while True:
             try:
-                status = self.s.readline()
+                self.logger.info("trying")
+                status = self.s.readline().decode("utf-8","strict")
                 if status is not None:
                     try:
+                        self.logger.info("trying to match")
+                        self.logger.info(f"status: {status}")
                         matches = self.__pos_pattern__.findall(status)
+                        self.logger.info(matches)
                         if len(matches[1]) == 3:
+                            self.logger.info("len eq 3")
                             self.pos = list(matches[1])
                         return status
                     except IndexError:
-                        print("No matches found in serial")
+                        self.logger.info("No matches found in serial")
                 else: break
             except:
-                print("Report readiness but empty")
+                self.logger.info("Report readiness but empty")
