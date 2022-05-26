@@ -10,7 +10,7 @@ from cnc_interface.cnc_class import cnc
 
 class CNCInterfaceNode(Node):
     def __init__(self):
-        super().__init__('CNC_interface_node')
+        super().__init__('cnc_interface_node')
 
         # Create and initialise cnc object
         self.cnc_obj = cnc()
@@ -32,17 +32,17 @@ class CNCInterfaceNode(Node):
     def declare_param(self):
         port          = '/dev/ttyUSB0'
         baud_rate         = 115200
-        acc           = 50
-        x_max           = 400
-        y_max           = 0
-        z_max           = 1100
-        default_speed = 2000
-        speed_x        = 2000
+        acc           = 50.0
+        x_max           = 400.0
+        y_max           = 1.0
+        z_max           = 1100.0
+        default_speed = 2000.0
+        speed_x        = 2000.0
         speed_y        = 0
-        speed_z        = 2000
-        steps_x       = 108
+        speed_z        = 2000.0
+        steps_x       = 108.0
         steps_y       = 0
-        steps_z       = 415
+        steps_z       = 415.0
         self.declare_parameter('port', port)
         self.declare_parameter('baud_rate', baud_rate)
         self.declare_parameter('acceleration', acc)
@@ -59,33 +59,20 @@ class CNCInterfaceNode(Node):
 
 
     def cnc_init(self):
-        # TODO: handle getting ros params
-        # port          = self.get_parameter('port').get_parameter_value().string_value
-        # baud          = self.get_parameter('baud_rate').get_parameter_value().integer_value
-        # acc           = self.get_parameter('acceleration').get_parameter_value()
-        # max_x           = self.get_parameter('x_max').get_parameter_value()
-        # max_y           = self.get_parameter('y_max').get_parameter_value()
-        # max_z           = self.get_parameter('x_max').get_parameter_value()
-        # default_speed = self.get_parameter('default_speed').get_parameter_value()
-        # speed_x        = self.get_parameter('x_max_speed').get_parameter_value()
-        # speed_y        = self.get_parameter('y_max_speed').get_parameter_value()
-        # speed_z        = self.get_parameter('z_max_speed').get_parameter_value()
-        # steps_x       = self.get_parameter('x_steps_mm').get_parameter_value()
-        # steps_y       = self.get_parameter('y_steps_mm').get_parameter_value()
-        # steps_z       = self.get_parameter('z_steps_mm').get_parameter_value()
-        port          = '/dev/ttyUSB0'
-        baud         = 115200
-        acc           = 50
-        max_x           = 400
-        max_y           = 0
-        max_z           = 1100
-        default_speed = 2000
-        speed_x        = 2000
-        speed_y        = 0
-        speed_z        = 2000
-        steps_x       = 108
-        steps_y       = 0
-        steps_z       = 415
+        port          = self.get_parameter('port').get_parameter_value().string_value
+        baud          = self.get_parameter('baud_rate').get_parameter_value().integer_value
+        acc           = self.get_parameter('acceleration').get_parameter_value().double_value
+        max_x           = self.get_parameter('x_max').get_parameter_value().double_value
+        max_y           = self.get_parameter('y_max').get_parameter_value().double_value
+        max_z           = self.get_parameter('x_max').get_parameter_value().double_value
+        default_speed = self.get_parameter('default_speed').get_parameter_value().double_value
+        speed_x        = self.get_parameter('x_max_speed').get_parameter_value().double_value
+        speed_y        = self.get_parameter('y_max_speed').get_parameter_value().double_value
+        speed_z        = self.get_parameter('z_max_speed').get_parameter_value().double_value
+        steps_x       = self.get_parameter('x_steps_mm').get_parameter_value().double_value
+        steps_y       = self.get_parameter('y_steps_mm').get_parameter_value().double_value
+        steps_z       = self.get_parameter('z_steps_mm').get_parameter_value().double_value
+
 
         self.cnc_obj.startup(port,baud,acc,max_x,max_y,max_z,default_speed,speed_x,speed_y,
                 speed_z,steps_x,steps_y,steps_z,self.get_logger())

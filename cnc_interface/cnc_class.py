@@ -57,7 +57,7 @@ class cnc:
         self.y_steps_mm   = stepsy
         self.z_steps_mm   = stepsz
         # set 1.0 for y for the sake of the checking of limits
-        self.limits  = [float(self.x_max), 1.0, float(self.z_max)]
+        self.limits  = [self.x_max, self.y_max, self.z_max]
         #initiates the serial port
         self.s = serial.Serial(self.port, self.baudrate)
         # set movement to Absolut coordinates
@@ -67,7 +67,6 @@ class cnc:
         self.home()
         # set the current position as the origin (GRBL sometimes starts with z not 0)
         self.setOrigin()
-        
 
     def shutdown(self):
         # close the serial connection
@@ -103,7 +102,7 @@ class cnc:
 
     def enableSteppers(self):
         # enable the stepper motors
-        try:	
+        try:
             self.s.write(str.encode('M17\n'))
             self.s.readline()
         except:

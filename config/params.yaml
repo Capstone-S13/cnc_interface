@@ -1,0 +1,15 @@
+cnc_interface_node:
+  ros__parameters:
+    port: "/dev/ttyUSB0"
+    baud_rate: 115200
+    accelration: 50.0
+    x_max: 400.0
+    y_max: 0.1
+    z_max: 1100.0
+    default_speed: 2000.0
+    speed_x: 2000.0
+    speed_y: 0.0
+    speed_z: 2000.0
+    steps_x: 108.0
+    steps_y: 0.0
+    steps_z: 415.0
