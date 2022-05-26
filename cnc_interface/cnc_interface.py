@@ -22,8 +22,8 @@ class CNCInterfaceNode(Node):
         self.status_pub = self.create_publisher(String, '/cnc_interface/status', 10)
 
         # Subscribers
-        self.cmd_sub = self.create_subscription(Twist, 'cnc_interface/cmd', self.cmd_callback, 10)
-        self.stop_cmd_sub = self.create_subscription(String, 'cnc_interface/stop', self.stop_callback, 10)
+        self.cmd_sub = self.create_subscription(Twist, 'cnc_interface/pos', self.cmd_callback, 10)
+        self.stop_cmd_sub = self.create_subscription(String, 'cnc_interface/cmd', self.stop_callback, 10)
 
         # timer callback
         timer_period = 0.1 # 10hz
@@ -105,6 +105,8 @@ class CNCInterfaceNode(Node):
         if  msg.data == 's':
             self.cnc_obj.disableSteppers()
             # fire steppers
+        elif msg.data == 'h':
+            self.cnc_obj.home()
         elif msg.data == 'f':
             self.cnc_obj.enableSteppers()
 
