@@ -19,7 +19,8 @@ setup(
             site_pkgs_path + '/static/dist',
             glob(package_name + '/static/dist/*.*')
         ),
-        (os.path.join('share', package_name), glob('launch/*.launch.py'))
+        (os.path.join('share', package_name), glob('launch/*.launch.py')),
+        (os.path.join('share', package_name), glob('config/*.yaml'))
     ],
     install_requires=['setuptools'],
     zip_safe=True,
