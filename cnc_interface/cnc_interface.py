@@ -64,7 +64,7 @@ class CNCInterfaceNode(Node):
         acc           = self.get_parameter('acceleration').get_parameter_value().double_value
         max_x           = self.get_parameter('x_max').get_parameter_value().double_value
         max_y           = self.get_parameter('y_max').get_parameter_value().double_value
-        max_z           = self.get_parameter('x_max').get_parameter_value().double_value
+        max_z           = self.get_parameter('z_max').get_parameter_value().double_value
         default_speed = self.get_parameter('default_speed').get_parameter_value().double_value
         speed_x        = self.get_parameter('x_max_speed').get_parameter_value().double_value
         speed_y        = self.get_parameter('y_max_speed').get_parameter_value().double_value
@@ -72,6 +72,9 @@ class CNCInterfaceNode(Node):
         steps_x       = self.get_parameter('x_steps_mm').get_parameter_value().double_value
         steps_y       = self.get_parameter('y_steps_mm').get_parameter_value().double_value
         steps_z       = self.get_parameter('z_steps_mm').get_parameter_value().double_value
+        self.get_logger().info(f"max_x: {max_x}")
+        self.get_logger().info(f"max_y: {max_y}")
+        self.get_logger().info(f"max_z: {max_z}")
 
 
         self.cnc_obj.startup(port,baud,acc,max_x,max_y,max_z,default_speed,speed_x,speed_y,
