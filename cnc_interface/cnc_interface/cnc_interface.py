@@ -1,11 +1,20 @@
+from unittest import result
+from pkg_resources import resource_listdir
 import rclpy
+import time
 from rclpy.node import Node
 from std_msgs.msg import String
 from geometry_msgs.msg import Twist
 
 from rclpy.parameter import Parameter
+from rclpy.action import ActionServer
 
 from cnc_interface.cnc_class import cnc
+from cnc_msgs.msg import CncPosition
+from cnc_msgs.action import CncMoveTo
+
+
+
 
 
 class CNCInterfaceNode(Node):
@@ -16,6 +25,13 @@ class CNCInterfaceNode(Node):
         self.cnc_obj = cnc()
         self.declare_param()
         self.cnc_init()
+
+        # Action server
+        self.action_server = ActionServer(
+            self,
+            CncMoveTo,
+            'cnc_action',
+            self.action_cb)
 
         # Publishers
         self.pos_pub = self.create_publisher(Twist,'/cnc_interface/position', 10)
@@ -28,6 +44,12 @@ class CNCInterfaceNode(Node):
         # timer callback
         timer_period = 0.1 # 10hz
         self.timer = self.create_timer(timer_period, self.loop)
+
+        # Action stuff
+        self.current_goal_handle = None
+        self.goal_start_time = None
+        self.goal_timeout = 45
+        self.busy_with_goal = False
 
     def declare_param(self):
         port          = '/dev/ttyUSB0'
@@ -100,6 +122,75 @@ class CNCInterfaceNode(Node):
         elif msg.data == 'f':
             self.cnc_obj.enableSteppers()
 
+    def action_cb(self, goal_handle):
+        self.get_logger().info(f"received goal of position: x:\
+            {goal_handle.request.goal.x}, y: {goal_handle.request.goal.y},\
+            z: {goal_handle.request.goal.z}")
+        self.busy_with_goal = True
+        self.goal_start_time = self.get_clock().now().to_msg().sec
+        self.cnc_obj.moveTo(goal_handle.request.goal.x,
+            goal_handle.request.goal.y,
+            goal_handle.request.goal.z)
+
+        result = None
+        self.current_goal_handle = goal_handle
+        while (self.busy_with_goal):
+            self.get_logger().info("looping in action callback")
+            result = self.action_feedback_loop()
+            self.loop()
+        self.get_logger().info("exit loop")
+        if result is not None:
+            self.get_logger().info("returning result")
+            return result
+
+    def action_feedback_loop(self):
+        if (not self.busy_with_goal):
+            return
+
+        success = False
+        cnc_pos_twist =  self.cnc_obj.getTwist()
+        current_pos = CncPosition()
+        current_pos.x = cnc_pos_twist.linear.x
+        current_pos.y = cnc_pos_twist.linear.y
+        current_pos.z = cnc_pos_twist.linear.z
+        self.get_logger().info(f"cnc is at position: x: {current_pos.x},\
+            y: {current_pos.y}, z: {current_pos.z}")
+
+        if (current_pos.x == self.current_goal_handle.request.goal.x and
+            current_pos.y == self.current_goal_handle.request.goal.y and
+            current_pos.z == self.current_goal_handle.request.goal.z):
+            success = True
+            self.current_goal_handle.succeed()
+            result  = CncMoveTo.Result()
+            result.position.x = current_pos.x
+            result.position.y = current_pos.y
+            result.position.z = current_pos.z
+            result.success = success
+            self.busy_with_goal = False
+            # self.current_goal_handle = None
+            self.goal_start_time = None
+            self.get_logger().info("Reached goal position!")
+            self.busy_with_goal = False
+            return result
+
+        feedback_msg = CncMoveTo.Feedback()
+        feedback_msg.position = current_pos
+        feedback_msg.success = success
+        self.current_goal_handle.publish_feedback(feedback_msg)
+
+        if (self.get_clock().now().to_msg().sec -
+            self.goal_start_time > self.goal_timeout):
+            failure_msg = CncMoveTo.Result()
+            failure_msg.position = current_pos
+            failure_msg.success = success
+            self.get_logger().error(f"Action timed out as it took longer\
+                than {self.goal_timeout} seconds!")
+            self.busy_with_goal = False
+            # self.current_goal_handle = None
+            self.goal_start_time = None
+            return None
+        return None
+
     def loop(self):
         print("p")
         # self.get_logger().info("loop")
@@ -110,10 +201,13 @@ class CNCInterfaceNode(Node):
         ros_status.data = status
         self.pos_pub.publish(cnc_pose)
         self.status_pub.publish(ros_status)
+        # self.action_feedback_loop()
         # self.get_logger().info("end loop")
 
         # Decide if we should call get_parameter() here so we can update
         # the parameters on the go
+
+
 
 
 
