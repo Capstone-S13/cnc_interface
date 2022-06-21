@@ -138,8 +138,9 @@ class CNCInterfaceNode(Node):
             self.get_logger().info("looping in action callback")
             result = self.action_feedback_loop()
             self.loop()
-
+        self.get_logger().info("exit loop")
         if result is not None:
+            self.get_logger().info("returning result")
             return result
 
     def action_feedback_loop(self):
@@ -169,6 +170,7 @@ class CNCInterfaceNode(Node):
             # self.current_goal_handle = None
             self.goal_start_time = None
             self.get_logger().info("Reached goal position!")
+            self.busy_with_goal = False
             return result
 
         feedback_msg = CncMoveTo.Feedback()
